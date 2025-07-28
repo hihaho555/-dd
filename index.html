@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>문화재 퍼즐 복원 게임</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-size: 2vw;
+      text-align: center;
+      background-color: #f8f8f8;
+      font-family: sans-serif;
+    }
+    .overlay {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      background: rgba(0, 0, 0, 0.8);
+      color: white;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 10;
+    }
+    .puzzle-container {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      grid-template-rows: repeat(3, 1fr);
+      width: 60vw;
+      height: 60vw;
+      margin: 5vw auto;
+      gap: 0;
+    }
+    .tile {
+      background-image: url('https://folio.itt.link/attachfiles/upload/board/SITE_000000000000001/321/BBSMSTR_000003218302/FILE_000000005951307_1');
+      background-size: 60vw 60vw;
+      background-repeat: no-repeat;
+      transition: transform 0.3s;
+      cursor: pointer;
+      border: 1px solid #111;
+      width: 100%;
+      height: 100%;
+    }
+    #moveCount {
+      margin-top: 2vw;
+      font-size: 2.5vw;
+    }
+    .hidden { display: none; }
+    .blur-out {
+      filter: blur(5px);
+      opacity: 0.4;
+      transition: all 1s ease-out;
+    }
+    .final-image {
+      width: 60vw;
+      margin: 3vw auto;
+      cursor: pointer;
+    }
+    .final-guide {
+      font-size: 2vw;
+      margin-bottom: 2vw;
+      color: #333;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 시작 화면 -->
+  <div class="overlay" id="startOverlay">
+    <div>당신은 문화재보존가입니다</div>
+    <div>파손되어 있는 문화재를 바른 모형으로 복원하여 봅시다</div>
+    <button id="startBtn" style="margin-top: 2vw; font-size: 2vw;">시작하기</button>
+  </div>
+
+  <!-- 클릭 횟수 표시 -->
+  <div id="moveCount">남은 클릭: 30</div>
+
+  <!-- 퍼즐 -->
+  <div class="puzzle-container" id="puzzleContainer"></div>
+
+  <!-- 성공 후 이미지 -->
+  <img src="https://folio.itt.link/attachfiles/upload/board/SITE_000000000000001/321/BBSMSTR_000003218302/FILE_000000005951307_1" id="finalImage" class="final-image hidden" onclick="showPassword()" />
+  <div id="clickGuide" class="final-guide hidden">문화재를 클릭하세요.</div>
+
+  <!-- 성공 후 비밀번호 오버레이 -->
+  <div class="overlay hidden" id="successOverlay">
+    <div>축하합니다.</div>
+    <div>문화재를 성공적으로 복원하였습니다.</div>
+    <div>비밀번호는 5634입니다.</div>
+    <div>창을 닫고, ZEP으로 돌아가세요.</div>
+  </div>
+
+  <!-- 실패 오버레이 -->
+  <div class="overlay hidden" id="failOverlay">
+    <div>실패했습니다</div>
+    <div>다시 도전하시겠습니까?</div>
+    <button onclick="location.reload()" style="font-size: 2vw; margin-top: 2vw;">다시 도전하기</button>
+  </div>
+
+  <script>
+    const container = document.getElementById("puzzleContainer");
+    const tiles = [];
+    const totalMoves = 30;
+    let remainingMoves = totalMoves;
+
+    function startGame() {
+      document.getElementById("startOverlay").classList.add("hidden");
+      initTiles();
+    }
+
+    function initTiles() {
+      container.innerHTML = "";
+      tiles.length = 0;
+      for (let i = 0; i < 9; i++) {
+        const tile = document.createElement("div");
+        tile.classList.add("tile");
+        tile.dataset.index = i;
+        tile.dataset.rotation = Math.floor(Math.random() * 4) * 90;
+        tile.style.transform = `rotate(${tile.dataset.rotation}deg)`;
+        const row = Math.floor(i / 3);
+        const col = i % 3;
+        tile.style.backgroundPosition = `-${col * 20}vw -${row * 20}vw`;
+        tile.addEventListener("click", () => rotateTile(tile));
+        container.appendChild(tile);
+        tiles.push(tile);
+      }
+    }
+
+    function rotateTile(tile) {
+      if (remainingMoves <= 0) return;
+      let rotation = parseInt(tile.dataset.rotation) + 90;
+      tile.dataset.rotation = rotation;
+      tile.style.transform = `rotate(${rotation}deg)`;
+      remainingMoves--;
+      document.getElementById("moveCount").innerText = `남은 클릭: ${remainingMoves}`;
+      if (remainingMoves === 0 && !isSolved()) {
+        document.getElementById("failOverlay").classList.remove("hidden");
+      }
+      if (isSolved()) {
+        finishPuzzle();
+      }
+    }
+
+    function isSolved() {
+      return tiles.every(tile => parseInt(tile.dataset.rotation) % 360 === 0);
+    }
+
+    function finishPuzzle() {
+      tiles.forEach(tile => tile.classList.add("blur-out"));
+      setTimeout(() => {
+        container.classList.add("hidden");
+        document.getElementById("finalImage").classList.remove("hidden");
+        document.getElementById("clickGuide").classList.remove("hidden");
+      }, 1000);
+    }
+
+    function showPassword() {
+      document.getElementById("successOverlay").classList.remove("hidden");
+      document.getElementById("clickGuide").classList.add("hidden");
+    }
+
+    // 버튼 이벤트 연결 (DOMContentLoaded로 안전하게)
+    document.addEventListener("DOMContentLoaded", function() {
+      document.getElementById("startBtn").onclick = startGame;
+    });
+  </script>
+</body>
+</html>
