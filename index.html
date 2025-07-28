@@ -29,14 +29,14 @@
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       grid-template-rows: repeat(3, 1fr);
-      width: 40vw;
-      height: 40vw;
+      width: 30vw;
+      height: 30vw;
       margin: 1.25vw auto;
       gap: 0;
     }
     .tile {
       background-image: url('https://folio.itt.link/attachfiles/upload/board/SITE_000000000000001/321/BBSMSTR_000003218302/FILE_000000005951307_1');
-      background-size: 40vw 40vw;
+      background-size: 30vw 30vw;
       background-repeat: no-repeat;
       transition: transform 0.3s;
       cursor: pointer;
@@ -55,7 +55,7 @@
       transition: all 1s ease-out;
     }
     .final-image {
-      width: 40vw;
+      width: 30vw;
       margin: 3vw auto;
       cursor: pointer;
     }
@@ -122,7 +122,7 @@
         tile.style.transform = `rotate(${tile.dataset.rotation}deg)`;
         const row = Math.floor(i / 3);
         const col = i % 3;
-        tile.style.backgroundPosition = `-${col * (40/3)}vw -${row * (40/3)}vw`;
+        tile.style.backgroundPosition = `-${col * (30/3)}vw -${row * (30/3)}vw`;
         tile.addEventListener("click", () => rotateTile(tile));
         container.appendChild(tile);
         tiles.push(tile);
